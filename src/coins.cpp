@@ -8,6 +8,27 @@
 
 #include <assert.h>
 
+bool CCoinsView::GetCoin(const COutPoint &outpoint, Coin &coin) const { return false; }
+uint256 CCoinsView::GetBestBlock() const { return uint256(); }
+bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) { return false; }
+CCoinsViewCursor *CCoinsView::Cursor() const { return 0; }
+
+bool CCoinsView::HaveCoin(const COutPoint &outpoint) const
+{
+    CCoins coins;
+    return GetCoin(outpoint, coins);
+}
+
+CCoinsViewBacked::CCoinsViewBacked(CCoinsView *viewIn) : base(viewIn) { }
+bool CCoinsViewBacked::GetCoin(const COutPoint &outpoint, Coin &coin) const { return base->GetCoin(outpoint, coin); }
+bool CCoinsViewBacked::HaveCoin(const COutPoint &outpoint) const { return base->HaveCoin(outpoint); }
+uint256 CCoinsViewBacked::GetBestBlock() const { return base->GetBestBlock(); }
+void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) { base = &viewIn; }
+bool CCoinsViewBacked::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) { return base->BatchWrite(mapCoins, hashBlock); }
+CCoinsViewCursor *CCoinsViewBacked::Cursor() const { return base->Cursor(); }
+size_t CCoinsViewBacked::EstimateSize() const { return base->EstimateSize(); }
+
+
 /**
  * calculate number of bytes for the bitmask, and its number of non-zero bytes
  * each bit in the bitmask represents the availability of one output, but the
